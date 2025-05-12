@@ -1,0 +1,64 @@
+---
+const CURRENCIES = [
+  { code: "EUR", usdChange: 1.07 },
+  { code: "COP", usdChange: 1.07 },
+  { code: "UYU", usdChange: 1.07 },
+];
+---
+
+<div class="container mx-auto my-10">
+  <table class="min-w-2xl divide-y divide-gray-700 mx-auto">
+    <thead class="bg-gray-600">
+      <tr>
+        <th
+          scope="col"
+          class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider"
+          >Divisa</th
+        >
+        <th
+          scope="col"
+          class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider"
+          >Valor</th
+        >
+      </tr>
+    </thead>
+    <tbody class="bg-gray-800 divide-y divide-gray-700">
+      {
+        CURRENCIES.map(({ code, usdChange }) => {
+          return (
+            <tr class="hover:bg-gray-700 transition duration-150">
+              <td class="px-6 py-4 whitespace-nowrap font-medium text-cyan-400">
+                {code}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-gray-300">
+                {usdChange} USD
+              </td>
+            </tr>
+          );
+        })
+      }
+      <tr class="">
+        <td class="text-center">
+          <select
+            class="bg-gray-800 min-w-full h-[38px] text-center text-white cursor-pointer"
+            id="new-currency"
+          >
+            <option>COP</option>
+            <option>ARS</option>
+            <option>UYU</option>
+          </select>
+        </td>
+        <td
+          class="text-cyan-500 text-center p-2 cursor-pointer font-bold bg-gray-600"
+          >+</td
+        >
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script type="module">
+  fetch("api/currency/EUR")
+    .then((res) => res.json())
+    .then((data) => console.log(data));
+</script>

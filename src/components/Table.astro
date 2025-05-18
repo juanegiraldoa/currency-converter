@@ -1,9 +1,5 @@
 ---
-const CURRENCIES = [
-  { code: "EUR", usdChange: 1.07 },
-  { code: "COP", usdChange: 1.07 },
-  { code: "UYU", usdChange: 1.07 },
-];
+
 ---
 
 <div class="container mx-auto my-10">
@@ -22,43 +18,49 @@ const CURRENCIES = [
         >
       </tr>
     </thead>
-    <tbody class="bg-gray-800 divide-y divide-gray-700">
-      {
-        CURRENCIES.map(({ code, usdChange }) => {
-          return (
-            <tr class="hover:bg-gray-700 transition duration-150">
-              <td class="px-6 py-4 whitespace-nowrap font-medium text-cyan-400">
-                {code}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-gray-300">
-                {usdChange} USD
-              </td>
-            </tr>
-          );
-        })
-      }
-      <tr class="">
-        <td class="text-center">
-          <select
-            class="bg-gray-800 min-w-full h-[38px] text-center text-white cursor-pointer"
-            id="new-currency"
-          >
-            <option>COP</option>
-            <option>ARS</option>
-            <option>UYU</option>
-          </select>
-        </td>
-        <td
-          class="text-cyan-500 text-center p-2 cursor-pointer font-bold bg-gray-600"
-          >+</td
-        >
-      </tr>
+    <tbody class="bg-gray-800 divide-y divide-gray-700" id="table-body">
     </tbody>
   </table>
 </div>
 
-<script type="module">
-  fetch("api/currency/EUR")
-    .then((res) => res.json())
-    .then((data) => console.log(data));
+<template id="currency-row">
+  <tr class="hover:bg-gray-700 transition duration-150">
+    <td class="px-6 py-4 whitespace-nowrap font-medium text-cyan-400" id="code">
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-gray-300" id="value"> </td>
+  </tr>
+</template>
+
+<template id="pending-currency">
+  <tr class="">
+    <td class="text-center">
+      <select
+        class="bg-gray-800 min-w-full h-[38px] text-center text-white cursor-pointer"
+        id="new-currency"
+      >
+        <option>COP</option>
+        <option>ARS</option>
+        <option>UYU</option>
+      </select>
+    </td>
+    <td
+      class="text-cyan-500 text-center p-2 cursor-pointer font-bold bg-gray-600"
+      >+</td
+    >
+  </tr>
+</template>
+
+<script is:inline type="module">
+  let currencies = ["COP", "UYU", "ARS", "CNY", "MXN", "PEN"];
+  const $table = document.querySelector("#table-body");
+  const $rowTemplate = document.querySelector("#currency-row");
+  currencies.forEach(async (currency) => {
+    const response = await fetch(`api/currency/${currency}`);
+    const data = await response.json();
+
+    const $row = $rowTemplate.cloneNode(true).content.querySelector("tr");
+    $row.querySelector("#code").append(currency);
+    $row.querySelector("#value").append(parseFloat(data.mid).toFixed(4));
+    $table.appendChild($row);
+  });
 </script>

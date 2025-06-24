@@ -19,8 +19,6 @@ export const GET: APIRoute = async ({ params, locals }) => {
   const today = new Date();
   const currentTime = new Date(current.timestamp);
 
-  console.log(current);
-
   if (today.getMinutes() !== currentTime.getMinutes()) {
     const response = await fetch(`${URL}/${currency}`);
     const data = await response.json();

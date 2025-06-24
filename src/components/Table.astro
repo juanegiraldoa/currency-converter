@@ -52,16 +52,37 @@
 </template>
 
 <script is:inline type="module">
-  let currencies = ["COP", "UYU", "ARS", "CNY", "MXN", "PEN"];
+  let currencies = {
+    COP: 0,
+    UYU: 0,
+    ARS: 0,
+    CNY: 0,
+    MXN: 0,
+    PEN: 0,
+  };
+
   const $table = document.querySelector("#table-body");
   const $rowTemplate = document.querySelector("#currency-row");
-  currencies.forEach(async (currency) => {
-    const response = await fetch(`api/currency/${currency}`);
-    const data = await response.json();
 
-    const $row = $rowTemplate.cloneNode(true).content.querySelector("tr");
-    $row.querySelector("#code").append(currency);
-    $row.querySelector("#value").append(parseFloat(data.mid).toFixed(4));
-    $table.appendChild($row);
-  });
+  function renderCurrencies() {
+    while ($table.firstChild) $table.removeChild($table.firstChild);
+    Object.keys(currencies).forEach((currencyKey) => {
+      const value = currencies[currencyKey];
+      const $row = $rowTemplate.cloneNode(true).content.querySelector("tr");
+      $row.querySelector("#code").append(currencyKey);
+      $row.querySelector("#value").append(value);
+      $table.appendChild($row);
+    });
+  }
+
+  function getCurrenciesValues() {
+    Object.keys(currencies).forEach(async (currency) => {
+      const response = await fetch(`api/currency/${currency}`);
+      const data = await response.json();
+      currencies[currency] = parseFloat(data.mid).toFixed(2);
+      renderCurrencies();
+    });
+  }
+
+  getCurrenciesValues();
 </script>

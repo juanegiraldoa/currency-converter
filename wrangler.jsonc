@@ -15,7 +15,7 @@
     "directory": "./dist"
   },
   "observability": {
-    "enabled": true
+    "enabled": false
   },
   "kv_namespaces": [
     { "id": "321d1282b9c043f68dbeb57ebd10d101", "binding": "CURRENCIES" }

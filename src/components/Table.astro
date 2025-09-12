@@ -3,86 +3,148 @@
 ---
 
 <div class="container mx-auto my-10">
-  <small class="text-white">Valor de la moneda respecto a 1 USD</small>
-  <table class="min-w-[100%] divide-y divide-gray-700 mx-auto">
-    <thead class="bg-gray-600">
-      <tr>
-        <th
-          scope="col"
-          class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider"
-          >Divisa</th
-        >
-        <th
-          scope="col"
-          class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider"
-          >Valor</th
-        >
-      </tr>
-    </thead>
-    <tbody class="bg-gray-800 divide-y divide-gray-700" id="table-body">
-    </tbody>
-  </table>
+	<small class="text-white">Valor de la moneda respecto a 1 USD</small>
+	<table class="min-w-[100%] divide-y divide-gray-700 mx-auto">
+		<thead class="bg-gray-600">
+			<tr>
+				<th
+					scope="col"
+					class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider"
+					>Divisa</th
+				>
+				<th
+					scope="col"
+					class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider"
+					>Valor (1 USD)</th
+				>
+			</tr>
+		</thead>
+		<tbody class="bg-gray-800 divide-y divide-gray-700" id="table-body">
+		</tbody>
+	</table>
+	<div class="flex gap-3 my-3">
+		<div>
+			<select
+				class="bg-gray-800 text-white cursor-pointer py-3 px-7"
+				id="currency-from"
+			>
+			</select>
+			<input class="bg-white p-1 h-full" id="from" placeholder="Cantidad" />
+		</div>
+		<div>
+			<select
+				class="bg-gray-800 text-white cursor-pointer py-3 px-7"
+				id="currency-to"
+			>
+			</select>
+			<input
+				class="bg-white p-1 h-full"
+				id="to"
+				placeholder="Resultado"
+				disabled
+			/>
+		</div>
+	</div>
 </div>
 
 <template id="currency-row">
-  <tr class="hover:bg-gray-700 transition duration-150">
-    <td class="px-6 py-4 whitespace-nowrap font-medium text-cyan-400" id="code">
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap text-gray-300" id="value"> </td>
-  </tr>
-</template>
-
-<template id="pending-currency">
-  <tr class="">
-    <td class="text-center">
-      <select
-        class="bg-gray-800 min-w-full h-[38px] text-center text-white cursor-pointer"
-        id="new-currency"
-      >
-        <option>COP</option>
-        <option>ARS</option>
-        <option>UYU</option>
-      </select>
-    </td>
-    <td
-      class="text-cyan-500 text-center p-2 cursor-pointer font-bold bg-gray-600"
-      >+</td
-    >
-  </tr>
+	<tr class="hover:bg-gray-700 transition duration-150">
+		<td class="px-6 py-4 whitespace-nowrap font-medium text-cyan-400" id="code">
+		</td>
+		<td class="px-6 py-4 whitespace-nowrap text-gray-300" id="value"> </td>
+	</tr>
 </template>
 
 <script is:inline type="module">
-  let currencies = {
-    COP: 0,
-    UYU: 0,
-    ARS: 0,
-    CNY: 0,
-    MXN: 0,
-    PEN: 0,
-  };
+	let currencies = {
+		COP: 0,
+		UYU: 0,
+		ARS: 0,
+		CNY: 0,
+		PEN: 0,
+		MXN: 0,
+	};
 
-  const $table = document.querySelector("#table-body");
-  const $rowTemplate = document.querySelector("#currency-row");
+	const currenciesKeys = Object.keys(currencies);
 
-  function renderCurrencies() {
-    while ($table.firstChild) $table.removeChild($table.firstChild);
-    Object.keys(currencies).forEach((currencyKey) => {
-      const value = currencies[currencyKey];
-      const $row = $rowTemplate.cloneNode(true).content.querySelector("tr");
-      $row.querySelector("#code").append(currencyKey);
-      $row.querySelector("#value").append(value);
-      $table.appendChild($row);
-    });
-  }
+	const $table = document.querySelector("#table-body");
+	const $rowTemplate = document.querySelector("#currency-row");
 
-  function getCurrenciesValues() {
-    Object.keys(currencies).forEach(async (currency) => {
-      const response = await fetch(`api/currency/${currency}`);
-      const data = await response.json();
-      currencies[currency] = parseFloat(data.mid).toFixed(2);
-      renderCurrencies();
-    });
-  }
+	function renderCurrencies() {
+		while ($table.firstChild) $table.removeChild($table.firstChild);
+		currenciesKeys.forEach((currencyKey) => {
+			const value = currencies[currencyKey];
+			const $row = $rowTemplate.cloneNode(true).content.querySelector("tr");
+			$row.querySelector("#code").append(currencyKey);
+			$row.querySelector("#value").append(value);
+			$table.appendChild($row);
+		});
+	}
 
-  getCurrenciesValues();
+	function getCurrenciesValues() {
+		currenciesKeys.forEach(async (currency) => {
+			const response = await fetch(`api/currency/${currency}`);
+			const data = await response.json();
+			// Store the rate relative to USD (1 USD = X units of currency)
+			currencies[currency] = parseFloat(data.mid).toFixed(4);
+			renderCurrencies();
+		});
+	}
+
+	getCurrenciesValues();
+
+	const $from = document.querySelector("#from");
+	const $currencyFrom = document.querySelector("#currency-from");
+	const $to = document.querySelector("#to");
+	const $currencyTo = document.querySelector("#currency-to");
+
+	$currencyFrom.innerHTML = "";
+	$currencyTo.innerHTML = "";
+
+	function createOption(curren) {
+		const option = document.createElement("option");
+		option.value = curren;
+		option.textContent = curren;
+		return option;
+	}
+
+	currenciesKeys.forEach((curr) =>
+		$currencyFrom.appendChild(createOption(curr)),
+	);
+	currenciesKeys.forEach((curr) => $currencyTo.appendChild(createOption(curr)));
+
+	function convertCurrency(amount, fromCurrency, toCurrency) {
+		if (fromCurrency === toCurrency) return amount;
+
+		const fromRate = currencies[fromCurrency];
+		const toRate = currencies[toCurrency];
+
+		if (!fromRate || !toRate) return 0;
+
+		const usdAmount = amount / parseFloat(fromRate);
+		const result = usdAmount * parseFloat(toRate);
+
+		return result;
+	}
+
+	function updateConversion() {
+		const value = $from.value;
+		const fromCurrency = $currencyFrom.value;
+		const toCurrency = $currencyTo.value;
+
+		if (value && fromCurrency && toCurrency && !isNaN(value)) {
+			const convertedValue = convertCurrency(
+				parseFloat(value),
+				fromCurrency,
+				toCurrency,
+			);
+			$to.value = convertedValue.toFixed(2);
+		} else {
+			$to.value = "";
+		}
+	}
+
+	$from.addEventListener("input", updateConversion);
+	$currencyFrom.addEventListener("change", updateConversion);
+	$currencyTo.addEventListener("change", updateConversion);
 </script>

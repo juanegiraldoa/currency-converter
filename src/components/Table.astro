@@ -22,23 +22,27 @@
 		<tbody class="bg-gray-800 divide-y divide-gray-700" id="table-body">
 		</tbody>
 	</table>
-	<div class="flex gap-3 my-3">
-		<div>
+	<div class="flex flex-col md:flex-row gap-3 my-3">
+		<div class="w-full md:w-1/2">
 			<select
-				class="bg-gray-800 text-white cursor-pointer py-3 px-7"
+				class="bg-gray-800 text-white cursor-pointer py-3 px-7 w-full"
 				id="currency-from"
 			>
 			</select>
-			<input class="bg-white p-1 h-full" id="from" placeholder="Cantidad" />
+			<input
+				class="bg-white p-1 h-full w-full mt-2"
+				id="from"
+				placeholder="Cantidad"
+			/>
 		</div>
-		<div>
+		<div class="w-full md:w-1/2">
 			<select
-				class="bg-gray-800 text-white cursor-pointer py-3 px-7"
+				class="bg-gray-800 text-white cursor-pointer py-3 px-7 w-full"
 				id="currency-to"
 			>
 			</select>
 			<input
-				class="bg-white p-1 h-full"
+				class="bg-white p-1 h-full w-full mt-2"
 				id="to"
 				placeholder="Resultado"
 				disabled
@@ -85,7 +89,6 @@
 		currenciesKeys.forEach(async (currency) => {
 			const response = await fetch(`api/currency/${currency}`);
 			const data = await response.json();
-			// Store the rate relative to USD (1 USD = X units of currency)
 			currencies[currency] = parseFloat(data.mid).toFixed(4);
 			renderCurrencies();
 		});

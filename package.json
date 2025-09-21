@@ -1,23 +1,23 @@
 {
-  "name": "currency-converter",
-  "type": "module",
-  "version": "0.0.1",
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro build && wrangler dev",
-    "astro": "astro",
-    "deploy": "astro build && wrangler deploy",
-    "cf-typegen": "wrangler types"
-  },
-  "dependencies": {
-    "@astrojs/cloudflare": "12.6.0",
-    "@tailwindcss/vite": "4.1.10",
-    "astro": "5.10.1",
-    "tailwindcss": "4.1.10"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "4.20250620.0",
-    "wrangler": "4.21.0"
-  }
+	"name": "currency-converter",
+	"type": "module",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro build && wrangler dev",
+		"astro": "astro",
+		"deploy": "astro build && wrangler deploy",
+		"cf-typegen": "wrangler types"
+	},
+	"dependencies": {
+		"@astrojs/cloudflare": "12.6.8",
+		"@tailwindcss/vite": "4.1.13",
+		"astro": "5.13.9",
+		"tailwindcss": "4.1.13"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "4.20250921.0",
+		"wrangler": "4.38.0"
+	}
 }

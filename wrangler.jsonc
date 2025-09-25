@@ -1,50 +1,19 @@
-/**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "currency-converter",
-  "main": "./dist/_worker.js/index.js",
-  "compatibility_date": "2025-04-19",
-  "compatibility_flags": ["nodejs_compat"],
-  "preview_urls": false,
-  "workers_dev": false,
-  "assets": {
-    "binding": "ASSETS",
-    "directory": "./dist"
-  },
-  "observability": {
-    "enabled": false
-  },
-  "kv_namespaces": [
-    { "id": "321d1282b9c043f68dbeb57ebd10d101", "binding": "CURRENCIES" }
-  ]
-  /**
-   * Smart Placement
-   * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-   */
-  // "placement": { "mode": "smart" },
-
-  /**
-   * Bindings
-   * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-   * databases, object storage, AI inference, real-time communication and more.
-   * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-   */
-
-  /**
-   * Environment Variables
-   * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-   */
-  // "vars": { "MY_VARIABLE": "production_value" },
-  /**
-   * Note: Use secrets to store sensitive data.
-   * https://developers.cloudflare.com/workers/configuration/secrets/
-   */
-  /**
-   * Service Bindings (communicate between multiple Workers)
-   * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-   */
-  // "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "currency-converter",
+	"main": "./dist/_worker.js/index.js",
+	"compatibility_date": "2025-04-19",
+	"compatibility_flags": ["nodejs_compat"],
+	"preview_urls": false,
+	"workers_dev": false,
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./dist",
+	},
+	"observability": {
+		"enabled": false,
+	},
+	"kv_namespaces": [
+		{ "id": "321d1282b9c043f68dbeb57ebd10d101", "binding": "CURRENCIES" },
+	],
 }

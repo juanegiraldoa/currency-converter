@@ -66,6 +66,7 @@
 		UYU: 0,
 		ARS: 0,
 		CNY: 0,
+		JPY: 0,
 		PEN: 0,
 		MXN: 0,
 	};
@@ -81,15 +82,16 @@
 		UYU: { flag: "🇺🇾", decimals: 2 },
 		ARS: { flag: "🇦🇷", decimals: 2 },
 		CNY: { flag: "🇨🇳", decimals: 2 },
+		JPY: { flag: "🇯🇵", decimals: 2 },
 		PEN: { flag: "🇵🇪", decimals: 2 },
-		MXN: { flag: "🇲🇽", decimals: 2 }
+		MXN: { flag: "🇲🇽", decimals: 2 },
 	};
 
 	function formatCurrency(value, currencyCode) {
 		const metadata = currencyMetadata[currencyCode] || { decimals: 4 };
-		return parseFloat(value).toLocaleString('en-US', {
+		return parseFloat(value).toLocaleString("en-US", {
 			minimumFractionDigits: metadata.decimals,
-			maximumFractionDigits: metadata.decimals
+			maximumFractionDigits: metadata.decimals,
 		});
 	}
 
@@ -152,16 +154,16 @@
 
 	function formatInputValue(value, currencyCode) {
 		if (value === "") return "";
-		
-		const cleanValue = value.replace(/[^0-9.]/g, '');
+
+		const cleanValue = value.replace(/[^0-9.]/g, "");
 		if (cleanValue === "") return "";
-		
-		const parts = cleanValue.split('.');
-		const integerPart = parts[0] || '0';
-		const decimalPart = parts[1] || '';
-		
-		const formattedInteger = parseInt(integerPart).toLocaleString('en-US');
-		
+
+		const parts = cleanValue.split(".");
+		const integerPart = parts[0] || "0";
+		const decimalPart = parts[1] || "";
+
+		const formattedInteger = parseInt(integerPart).toLocaleString("en-US");
+
 		if (decimalPart) {
 			return `${formattedInteger}.${decimalPart}`;
 		}
@@ -169,7 +171,7 @@
 	}
 
 	function updateConversion() {
-		const rawValue = $from.value.replace(/[^0-9.]/g, '');
+		const rawValue = $from.value.replace(/[^0-9.]/g, "");
 		const fromCurrency = $currencyFrom.value;
 		const toCurrency = $currencyTo.value;
 
@@ -186,26 +188,26 @@
 	}
 
 	$from.addEventListener("input", updateConversion);
-	
-	$from.addEventListener("blur", function(e) {
+
+	$from.addEventListener("blur", function (e) {
 		const fromCurrency = $currencyFrom.value;
-		
+
 		if (this.value === "") {
 			return;
 		}
-		
+
 		const formattedValue = formatInputValue(this.value, fromCurrency);
 		this.value = formattedValue;
-		
+
 		updateConversion();
 	});
-	
-	$from.addEventListener("focus", function(e) {
+
+	$from.addEventListener("focus", function (e) {
 		if (this.value === "") {
 			return;
 		}
-		
-		const cleanValue = this.value.replace(/[^0-9.]/g, '');
+
+		const cleanValue = this.value.replace(/[^0-9.]/g, "");
 		this.value = cleanValue;
 	});
 

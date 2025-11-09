@@ -11,13 +11,13 @@
 		"cf-typegen": "wrangler types"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "12.6.9",
-		"@tailwindcss/vite": "4.1.13",
-		"astro": "5.14.1",
-		"tailwindcss": "4.1.13"
+		"@astrojs/cloudflare": "12.6.10",
+		"@tailwindcss/vite": "4.1.17",
+		"astro": "5.15.4",
+		"tailwindcss": "4.1.17"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "4.20250927.0",
-		"wrangler": "4.40.3"
+		"@cloudflare/workers-types": "4.20251109.0",
+		"wrangler": "4.46.0"
 	}
 }

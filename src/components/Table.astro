@@ -3,7 +3,21 @@
 ---
 
 <div class="container mx-auto my-10">
-	<small class="text-white">Valor de la moneda respecto a 1 USD</small>
+	<div class="flex justify-between items-center mb-2">
+		<small class="text-white">Valor de la moneda respecto a 1 USD</small>
+		<div class="flex items-center gap-2">
+			<small class="text-gray-400">Actualizar en: <span id="countdown">60</span>s</small>
+			<button
+				class="bg-gray-600 hover:bg-gray-500 text-white p-2 rounded-full transition duration-150 transform hover:scale-105"
+				id="force-refresh"
+				aria-label="Forzar actualización"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+				</svg>
+			</button>
+		</div>
+	</div>
 	<table class="min-w-full divide-y divide-gray-700 mx-auto">
 		<thead class="bg-gray-600">
 			<tr>
@@ -118,13 +132,16 @@
 		});
 	}
 
-	function getCurrenciesValues() {
-		currenciesKeys.forEach(async (currency) => {
-			const response = await fetch(`api/currency/${currency}`);
+	async function getCurrenciesValues(force = false) {
+		const promises = currenciesKeys.map(async (currency) => {
+			const url = force ? `api/currency/${currency}?force=true` : `api/currency/${currency}`;
+			const response = await fetch(url);
 			const data = await response.json();
 			currencies[currency] = parseFloat(data.mid).toFixed(4);
-			renderCurrencies();
 		});
+		
+		await Promise.all(promises);
+		renderCurrencies();
 	}
 
 	getCurrenciesValues();
@@ -241,5 +258,32 @@
 		}
 
 		updateConversion();
+	});
+
+	let countdown = 60;
+	let countdownInterval;
+
+	function startCountdown() {
+		clearInterval(countdownInterval);
+		countdown = 60;
+		const $countdown = document.querySelector("#countdown");
+		$countdown.textContent = countdown;
+
+		countdownInterval = setInterval(() => {
+			countdown--;
+			$countdown.textContent = countdown;
+
+			if (countdown <= 0) {
+				getCurrenciesValues();
+				startCountdown();
+			}
+		}, 1000);
+	}
+
+	startCountdown();
+
+	document.querySelector("#force-refresh").addEventListener("click", () => {
+		getCurrenciesValues(true);
+		startCountdown();
 	});
 </script>

@@ -18,25 +18,28 @@ export const GET: APIRoute = async ({ params, locals, url }) => {
 
   const searchParams = new URLSearchParams(url.search);
   const amount = parseFloat(searchParams.get("amount") || "1");
+  const force = searchParams.get("force") === "true";
 
   const { CURRENCIES } = locals.runtime.env;
 
-  const cachedData = await CURRENCIES.get(currency);
+  if (!force) {
+    const cachedData = await CURRENCIES.get(currency);
 
-  if (cachedData) {
-    const cached = JSON.parse(cachedData) as Currency;
-    const cacheTime = new Date(cached.timestamp);
-    const now = new Date();
-    const cacheAge = (now.getTime() - cacheTime.getTime()) / 1000;
+    if (cachedData) {
+      const cached = JSON.parse(cachedData) as Currency;
+      const cacheTime = new Date(cached.timestamp);
+      const now = new Date();
+      const cacheAge = (now.getTime() - cacheTime.getTime()) / 1000;
 
-    if (cacheAge < CACHE_TTL) {
-      const result = {
-        ...cached,
-        amount,
-        cached: true,
-        cacheAge: Math.floor(cacheAge),
-      };
-      return new Response(JSON.stringify(result));
+      if (cacheAge < CACHE_TTL) {
+        const result = {
+          ...cached,
+          amount,
+          cached: true,
+          cacheAge: Math.floor(cacheAge),
+        };
+        return new Response(JSON.stringify(result));
+      }
     }
   }
 

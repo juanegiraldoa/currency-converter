@@ -22,8 +22,8 @@
 		<tbody class="bg-gray-800 divide-y divide-gray-700" id="table-body">
 		</tbody>
 	</table>
-	<div class="flex flex-col md:flex-row gap-3 my-3">
-		<div class="w-full md:w-1/2">
+	<div class="flex flex-col md:flex-row gap-3 my-3 items-center">
+		<div class="w-full md:w-2/5">
 			<select
 				class="bg-gray-800 text-white cursor-pointer py-3 px-7 w-full"
 				id="currency-from"
@@ -35,7 +35,18 @@
 				placeholder="Cantidad"
 			/>
 		</div>
-		<div class="w-full md:w-1/2">
+		<div class="flex items-center justify-center w-full md:w-1/5 py-4">
+			<button
+				class="bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full transition duration-150 transform hover:scale-105"
+				id="swap-button"
+				aria-label="Intercambiar monedas"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+				</svg>
+			</button>
+		</div>
+		<div class="w-full md:w-2/5">
 			<select
 				class="bg-gray-800 text-white cursor-pointer py-3 px-7 w-full"
 				id="currency-to"
@@ -122,6 +133,7 @@
 	const $currencyFrom = document.querySelector("#currency-from");
 	const $to = document.querySelector("#to");
 	const $currencyTo = document.querySelector("#currency-to");
+	const $swapButton = document.querySelector("#swap-button");
 
 	$currencyFrom.innerHTML = "";
 	$currencyTo.innerHTML = "";
@@ -213,4 +225,21 @@
 
 	$currencyFrom.addEventListener("change", updateConversion);
 	$currencyTo.addEventListener("change", updateConversion);
+
+	$swapButton.addEventListener("click", function() {
+		const fromCurrency = $currencyFrom.value;
+		const toCurrency = $currencyTo.value;
+		const fromValue = $from.value;
+		const toValue = $to.value;
+
+		$currencyFrom.value = toCurrency;
+		$currencyTo.value = fromCurrency;
+
+		if (fromValue && !isNaN(parseFloat(fromValue.replace(/[^0-9.]/g, "")))) {
+			$from.value = toValue;
+			$to.value = fromValue;
+		}
+
+		updateConversion();
+	});
 </script>

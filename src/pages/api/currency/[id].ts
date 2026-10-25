@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 
 const BASE_URL = "https://duckduckgo.com/js/spice/currency_convert";
 const CACHE_TTL = 60;
@@ -12,7 +13,7 @@ export interface Currency {
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ params, locals, url }) => {
+export const GET: APIRoute = async ({ params, url }) => {
   const currency = params.id;
   if (!currency) return new Response("Send currency param");
 
@@ -20,7 +21,7 @@ export const GET: APIRoute = async ({ params, locals, url }) => {
   const amount = parseFloat(searchParams.get("amount") || "1");
   const force = searchParams.get("force") === "true";
 
-  const { CURRENCIES } = locals.runtime.env;
+  const { CURRENCIES } = env;
 
   if (!force) {
     const cachedData = await CURRENCIES.get(currency);

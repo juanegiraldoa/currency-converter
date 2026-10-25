@@ -1,289 +1,464 @@
 ---
-
+const year = new Date().getFullYear();
 ---
 
-<div class="container mx-auto my-10">
-	<div class="flex justify-between items-center mb-2">
-		<small class="text-white">Valor de la moneda respecto a 1 USD</small>
-		<div class="flex items-center gap-2">
-			<small class="text-gray-400">Actualizar en: <span id="countdown">60</span>s</small>
-			<button
-				class="bg-gray-600 hover:bg-gray-500 text-white p-2 rounded-full transition duration-150 transform hover:scale-105"
-				id="force-refresh"
-				aria-label="Forzar actualización"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-				</svg>
-			</button>
+<main class="page-shell">
+	<article class="note" aria-labelledby="page-title">
+		<div class="note-top">
+			<p class="microtext" aria-hidden="true">
+				Casa de cambio · Tasas de referencia · Casa de cambio · Tasas de
+				referencia · Casa de cambio · Tasas de referencia ·
+			</p>
+			<p class="serial">No. 1 842 067 · Serie {year}</p>
 		</div>
-	</div>
-	<table class="min-w-full divide-y divide-gray-700 mx-auto">
-		<thead class="bg-gray-600">
-			<tr>
-				<th
-					scope="col"
-					class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider"
-					>Divisa</th
+
+		<div class="note-body">
+			<header class="note-intro">
+				<div class="seal-mark" aria-hidden="true">MC</div>
+				<h1 id="page-title">Mesa de cambio</h1>
+				<p>
+					Convierte entre monedas de América y Asia con la tasa vigente. Se
+					actualizan cada minuto.
+				</p>
+			</header>
+
+			<section class="converter" aria-labelledby="converter-title">
+				<h2 id="converter-title" class="sr-only">Conversor de monedas</h2>
+
+				<div class="field">
+					<div class="field-head">
+						<label for="from">Tengo</label>
+						<div class="select-wrap">
+							<select id="currency-from" aria-label="Moneda de origen"></select>
+							<svg viewBox="0 0 12 8" fill="none" aria-hidden="true">
+								<path
+									d="M1 1.5 6 6.5 11 1.5"
+									stroke="currentColor"
+									stroke-width="1.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"></path>
+							</svg>
+						</div>
+					</div>
+					<input
+						id="from"
+						type="text"
+						inputmode="decimal"
+						autocomplete="off"
+						placeholder="0.00"
+						value="1"
+					/>
+				</div>
+
+				<div class="swap-row">
+					<span class="rule" aria-hidden="true"></span>
+					<button
+						id="swap-button"
+						class="swap"
+						type="button"
+						aria-label="Intercambiar monedas"
+					>
+						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path
+								d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3"
+								stroke="currentColor"
+								stroke-width="1.6"
+								stroke-linecap="round"
+								stroke-linejoin="round"></path>
+						</svg>
+					</button>
+					<span class="rule" aria-hidden="true"></span>
+				</div>
+
+				<div class="field">
+					<div class="field-head">
+						<label for="to">Recibo</label>
+						<div class="select-wrap">
+							<select id="currency-to" aria-label="Moneda de destino"></select>
+							<svg viewBox="0 0 12 8" fill="none" aria-hidden="true">
+								<path
+									d="M1 1.5 6 6.5 11 1.5"
+									stroke="currentColor"
+									stroke-width="1.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"></path>
+							</svg>
+						</div>
+					</div>
+					<output
+						id="to"
+						for="from currency-from currency-to"
+						aria-live="polite"
+						aria-atomic="true">—</output>
+				</div>
+
+				<p class="rate-line">
+					<span>Tasa de referencia</span>
+					<output id="rate-value" aria-live="polite">—</output>
+				</p>
+			</section>
+		</div>
+
+		<footer class="note-stub">
+			<div class="status" data-state="loading">
+				<span class="status-dot" aria-hidden="true"></span>
+				<p id="status" role="status" aria-live="polite">Cargando tasas…</p>
+			</div>
+
+			<div class="refresh">
+				<span class="countdown" id="countdown">60 s</span>
+				<button
+					id="force-refresh"
+					class="refresh-button"
+					type="button"
+					data-loading="false"
 				>
-				<th
-					scope="col"
-					class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider"
-					>Valor (1 USD)</th
-				>
-			</tr>
-		</thead>
-		<tbody class="bg-gray-800 divide-y divide-gray-700" id="table-body">
-		</tbody>
-	</table>
-	<div class="flex flex-col md:flex-row gap-3 my-3 items-center">
-		<div class="w-full md:w-2/5">
-			<select
-				class="bg-gray-800 text-white cursor-pointer py-3 px-7 w-full"
-				id="currency-from"
-			>
-			</select>
-			<input
-				class="bg-white p-1 h-full w-full mt-2"
-				id="from"
-				placeholder="Cantidad"
-			/>
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path
+							d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7"
+							stroke="currentColor"
+							stroke-width="1.7"
+							stroke-linecap="round"
+							stroke-linejoin="round"></path>
+					</svg>
+					Actualizar
+				</button>
+			</div>
+
+			<span class="cache-bar" aria-hidden="true">
+				<span id="cache-progress"></span>
+			</span>
+		</footer>
+	</article>
+
+	<section class="quotes-section" aria-labelledby="quotes-title">
+		<div class="quotes-head">
+			<div>
+				<h2 id="quotes-title">Cotizaciones</h2>
+				<p>Valor de cada moneda frente a 1 dólar estadounidense.</p>
+			</div>
+			<p class="quotes-base">Base: 1 USD</p>
 		</div>
-		<div class="flex items-center justify-center w-full md:w-1/5 py-4">
-			<button
-				class="bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full transition duration-150 transform hover:scale-105"
-				id="swap-button"
-				aria-label="Intercambiar monedas"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-				</svg>
-			</button>
-		</div>
-		<div class="w-full md:w-2/5">
-			<select
-				class="bg-gray-800 text-white cursor-pointer py-3 px-7 w-full"
-				id="currency-to"
-			>
-			</select>
-			<input
-				class="bg-white p-1 h-full w-full mt-2"
-				id="to"
-				placeholder="Resultado"
-				disabled
-			/>
-		</div>
-	</div>
-</div>
+		<ul id="quotes" class="quotes"></ul>
+	</section>
 
-<template id="currency-row">
-	<tr class="hover:bg-gray-700 transition duration-150">
-		<td class="px-6 py-4 whitespace-nowrap font-medium text-cyan-400" id="code">
-		</td>
-		<td class="px-6 py-4 whitespace-nowrap text-gray-300" id="value"> </td>
-	</tr>
-</template>
+	<footer class="page-footer">
+		<p>
+			Tasas de referencia de DuckDuckGo. No constituyen una oferta de cambio.
+		</p>
+		<p>Actualizadas automáticamente cada minuto.</p>
+	</footer>
+</main>
 
-<script is:inline type="module">
-	let currencies = {
-		USD: 0,
-		COP: 0,
-		UYU: 0,
-		ARS: 0,
-		CNY: 0,
-		JPY: 0,
-		PEN: 0,
-		MXN: 0,
-	};
-
-	const currenciesKeys = Object.keys(currencies);
-
-	const $table = document.querySelector("#table-body");
-	const $rowTemplate = document.querySelector("#currency-row");
-
+<script is:inline>
 	const currencyMetadata = {
-		USD: { flag: "🇺🇸", decimals: 2 },
-		COP: { flag: "🇨🇴", decimals: 2 },
-		UYU: { flag: "🇺🇾", decimals: 2 },
-		ARS: { flag: "🇦🇷", decimals: 2 },
-		CNY: { flag: "🇨🇳", decimals: 2 },
-		JPY: { flag: "🇯🇵", decimals: 2 },
-		PEN: { flag: "🇵🇪", decimals: 2 },
-		MXN: { flag: "🇲🇽", decimals: 2 },
+		USD: { flag: "🇺🇸", name: "Dólar estadounidense" },
+		COP: { flag: "🇨🇴", name: "Peso colombiano" },
+		UYU: { flag: "🇺🇾", name: "Peso uruguayo" },
+		ARS: { flag: "🇦🇷", name: "Peso argentino" },
+		CNY: { flag: "🇨🇳", name: "Yuan chino" },
+		JPY: { flag: "🇯🇵", name: "Yen japonés" },
+		PEN: { flag: "🇵🇪", name: "Sol peruano" },
+		MXN: { flag: "🇲🇽", name: "Peso mexicano" },
 	};
 
-	function formatCurrency(value, currencyCode) {
-		const metadata = currencyMetadata[currencyCode] || { decimals: 4 };
-		return parseFloat(value).toLocaleString("en-US", {
-			minimumFractionDigits: metadata.decimals,
-			maximumFractionDigits: metadata.decimals,
-		});
-	}
+	const currencyCodes = Object.keys(currencyMetadata);
+	const currencies = Object.fromEntries(
+		currencyCodes.map((code) => [code, 0]),
+	);
 
-	function renderCurrencies() {
-		while ($table.firstChild) $table.removeChild($table.firstChild);
-		currenciesKeys.forEach((currencyKey) => {
-			const value = currencies[currencyKey];
-			const $row = $rowTemplate.cloneNode(true).content.querySelector("tr");
-			const $codeCell = $row.querySelector("#code");
-			$codeCell.innerHTML = `${currencyMetadata[currencyKey]?.flag || ""} ${currencyKey}`;
-			$row.querySelector("#value").append(formatCurrency(value, currencyKey));
-			$table.appendChild($row);
-		});
-	}
-
-	async function getCurrenciesValues(force = false) {
-		const promises = currenciesKeys.map(async (currency) => {
-			const url = force ? `api/currency/${currency}?force=true` : `api/currency/${currency}`;
-			const response = await fetch(url);
-			const data = await response.json();
-			currencies[currency] = parseFloat(data.mid).toFixed(4);
-		});
-		
-		await Promise.all(promises);
-		renderCurrencies();
-	}
-
-	getCurrenciesValues();
+	const CACHE_SECONDS = 60;
 
 	const $from = document.querySelector("#from");
-	const $currencyFrom = document.querySelector("#currency-from");
 	const $to = document.querySelector("#to");
+	const $currencyFrom = document.querySelector("#currency-from");
 	const $currencyTo = document.querySelector("#currency-to");
 	const $swapButton = document.querySelector("#swap-button");
+	const $refreshButton = document.querySelector("#force-refresh");
+	const $countdown = document.querySelector("#countdown");
+	const $status = document.querySelector("#status");
+	const $statusGroup = $status.closest(".status");
+	const $rateValue = document.querySelector("#rate-value");
+	const $cacheProgress = document.querySelector("#cache-progress");
+	const $quotes = document.querySelector("#quotes");
 
-	$currencyFrom.innerHTML = "";
-	$currencyTo.innerHTML = "";
+	const quoteValues = new Map();
+	let secondsLeft = CACHE_SECONDS;
+	let countdownTimer;
+	let isFetching = false;
 
-	function createOption(curren) {
-		const option = document.createElement("option");
-		option.value = curren;
-		option.textContent = `${currencyMetadata[curren]?.flag || ""} ${curren}`;
-		return option;
+	function formatAmount(value) {
+		const abs = Math.abs(value);
+		const decimals = abs > 0 && abs < 0.01 ? 6 : abs > 0 && abs < 1 ? 4 : 2;
+
+		return value.toLocaleString("en-US", {
+			minimumFractionDigits: decimals,
+			maximumFractionDigits: decimals,
+		});
 	}
 
-	currenciesKeys.forEach((curr) =>
-		$currencyFrom.appendChild(createOption(curr)),
-	);
-	currenciesKeys.forEach((curr) => $currencyTo.appendChild(createOption(curr)));
+	function formatRate(value) {
+		const abs = Math.abs(value);
+		const decimals = abs >= 100 ? 2 : abs >= 1 ? 4 : 6;
 
-	function convertCurrency(amount, fromCurrency, toCurrency) {
-		if (fromCurrency === toCurrency) return amount;
-
-		const fromRate = currencies[fromCurrency];
-		const toRate = currencies[toCurrency];
-
-		if (!fromRate || !toRate) return 0;
-
-		const usdAmount = amount / parseFloat(fromRate);
-		const result = usdAmount * parseFloat(toRate);
-
-		return result;
+		return value.toLocaleString("en-US", {
+			minimumFractionDigits: abs >= 1 ? 2 : 6,
+			maximumFractionDigits: decimals,
+		});
 	}
 
-	function formatInputValue(value, currencyCode) {
-		if (value === "") return "";
+	function parseAmount(value) {
+		const cleaned = String(value)
+			.replace(/,/g, "")
+			.replace(/[^0-9.]/g, "");
 
-		const cleanValue = value.replace(/[^0-9.]/g, "");
-		if (cleanValue === "") return "";
+		if (!cleaned) return null;
 
-		const parts = cleanValue.split(".");
-		const integerPart = parts[0] || "0";
-		const decimalPart = parts[1] || "";
+		const parsed = Number.parseFloat(cleaned);
+		return Number.isFinite(parsed) ? parsed : null;
+	}
 
-		const formattedInteger = parseInt(integerPart).toLocaleString("en-US");
+	function formatInputValue(value) {
+		const cleaned = String(value).replace(/[^0-9.]/g, "");
+		if (!cleaned) return "";
 
-		if (decimalPart) {
-			return `${formattedInteger}.${decimalPart}`;
-		}
-		return formattedInteger;
+		const [integerPart, ...decimalParts] = cleaned.split(".");
+		const normalizedInteger = (integerPart || "0").replace(
+			/^0+(?=\d)/,
+			"",
+		);
+		const decimals = decimalParts.join("").slice(0, 4);
+		const formattedInteger = Number(
+			normalizedInteger || "0",
+		).toLocaleString("en-US");
+
+		return decimals ? `${formattedInteger}.${decimals}` : formattedInteger;
+	}
+
+	function buildOptions(select) {
+		currencyCodes.forEach((code) => {
+			const option = document.createElement("option");
+			option.value = code;
+			option.textContent = `${currencyMetadata[code].flag} ${code}`;
+			select.append(option);
+		});
+	}
+
+	function buildQuotes() {
+		currencyCodes.forEach((code) => {
+			const metadata = currencyMetadata[code];
+			const item = document.createElement("li");
+
+			const top = document.createElement("div");
+			top.className = "quote-top";
+
+			const flag = document.createElement("span");
+			flag.className = "quote-flag";
+			flag.textContent = metadata.flag;
+			flag.setAttribute("aria-hidden", "true");
+
+			const codeLabel = document.createElement("span");
+			codeLabel.className = "quote-code";
+			codeLabel.textContent = code;
+
+			top.append(flag, codeLabel);
+
+			const value = document.createElement("p");
+			value.className = "quote-value";
+			value.textContent = "—";
+
+			const name = document.createElement("p");
+			name.className = "quote-name";
+			name.textContent = metadata.name;
+			name.title = metadata.name;
+
+			item.append(top, value, name);
+			$quotes.append(item);
+			quoteValues.set(code, value);
+		});
+	}
+
+	function updateQuotes() {
+		currencyCodes.forEach((code) => {
+			const value = quoteValues.get(code);
+			if (!value) return;
+
+			const rate = currencies[code];
+			setText(value, rate > 0 ? formatAmount(rate) : "—");
+		});
+	}
+
+	function setText(element, text) {
+		if (element.textContent !== text) element.textContent = text;
 	}
 
 	function updateConversion() {
-		const rawValue = $from.value.replace(/[^0-9.]/g, "");
-		const fromCurrency = $currencyFrom.value;
-		const toCurrency = $currencyTo.value;
+		const from = $currencyFrom.value;
+		const to = $currencyTo.value;
+		const fromRate = currencies[from];
+		const toRate = currencies[to];
 
-		if (rawValue && fromCurrency && toCurrency && !isNaN(rawValue)) {
-			const convertedValue = convertCurrency(
-				parseFloat(rawValue),
-				fromCurrency,
-				toCurrency,
-			);
-			$to.value = formatCurrency(convertedValue, toCurrency);
+		if (!(fromRate > 0) || !(toRate > 0)) {
+			setText($to, "—");
+			$to.classList.add("is-empty");
+			setText($rateValue, "Sin tasas disponibles");
+			return;
+		}
+
+		const amount = parseAmount($from.value);
+		$to.classList.toggle("is-empty", amount === null);
+
+		if (amount === null) {
+			setText($to, "—");
 		} else {
-			$to.value = "";
+			const result = from === to ? amount : (amount / fromRate) * toRate;
+			setText($to, formatAmount(result));
+		}
+
+		setText(
+			$rateValue,
+			from === to
+				? `1 ${from} = 1 ${to}`
+				: `1 ${from} = ${formatRate(toRate / fromRate)} ${to}`,
+		);
+	}
+
+	function setStatus(message, state) {
+		$status.textContent = message;
+		$statusGroup.dataset.state = state;
+	}
+
+	function setLoading(loading) {
+		$refreshButton.disabled = loading;
+		$refreshButton.dataset.loading = String(loading);
+		$refreshButton.setAttribute("aria-busy", String(loading));
+	}
+
+	function renderCountdown() {
+		$countdown.textContent = `${secondsLeft} s`;
+		$cacheProgress.style.width = `${(secondsLeft / CACHE_SECONDS) * 100}%`;
+	}
+
+	function startCountdown() {
+		clearInterval(countdownTimer);
+		secondsLeft = CACHE_SECONDS;
+		renderCountdown();
+
+		countdownTimer = window.setInterval(() => {
+			secondsLeft -= 1;
+
+			if (secondsLeft <= 0) {
+				secondsLeft = CACHE_SECONDS;
+				getCurrenciesValues();
+			}
+
+			renderCountdown();
+		}, 1000);
+	}
+
+	async function getCurrenciesValues(force = false) {
+		if (isFetching) return;
+
+		isFetching = true;
+		setLoading(true);
+		setStatus("Actualizando tasas…", "loading");
+
+		try {
+			const results = await Promise.allSettled(
+				currencyCodes.map(async (code) => {
+					const response = await fetch(
+						`api/currency/${code}${force ? "?force=true" : ""}`,
+					);
+
+					if (!response.ok) {
+						throw new Error(`HTTP ${response.status}`);
+					}
+
+					const data = await response.json();
+					const mid = Number(data.mid);
+
+					if (!Number.isFinite(mid) || mid <= 0) {
+						throw new Error("Tasa inválida");
+					}
+
+					return { code, mid };
+				}),
+			);
+
+			let updated = 0;
+
+			results.forEach((result) => {
+				if (result.status === "fulfilled") {
+					currencies[result.value.code] = result.value.mid;
+					updated += 1;
+				}
+			});
+
+			updateQuotes();
+			updateConversion();
+
+			if (updated === currencyCodes.length) {
+				const time = new Date().toLocaleTimeString("es", {
+					hour: "2-digit",
+					minute: "2-digit",
+					hour12: false,
+				});
+				setStatus(`Actualizado a las ${time}`, "idle");
+			} else if (updated > 0) {
+				setStatus("Algunas tasas no se actualizaron", "warning");
+			} else {
+				setStatus("No se pudieron obtener las tasas", "error");
+			}
+		} catch (error) {
+			console.error("No se pudieron obtener las tasas", error);
+			setStatus("No se pudieron obtener las tasas", "error");
+		} finally {
+			isFetching = false;
+			setLoading(false);
 		}
 	}
 
+	buildOptions($currencyFrom);
+	buildOptions($currencyTo);
+	$currencyFrom.value = "USD";
+	$currencyTo.value = "COP";
+	buildQuotes();
+
+	updateConversion();
+	startCountdown();
+	getCurrenciesValues();
+
 	$from.addEventListener("input", updateConversion);
 
-	$from.addEventListener("blur", function (e) {
-		const fromCurrency = $currencyFrom.value;
-
-		if (this.value === "") {
-			return;
-		}
-
-		const formattedValue = formatInputValue(this.value, fromCurrency);
-		this.value = formattedValue;
-
+	$from.addEventListener("blur", () => {
+		const formatted = formatInputValue($from.value);
+		if (formatted) $from.value = formatted;
 		updateConversion();
 	});
 
-	$from.addEventListener("focus", function (e) {
-		if (this.value === "") {
-			return;
-		}
-
-		const cleanValue = this.value.replace(/[^0-9.]/g, "");
-		this.value = cleanValue;
+	$from.addEventListener("focus", () => {
+		$from.value = $from.value.replace(/,/g, "");
 	});
 
 	$currencyFrom.addEventListener("change", updateConversion);
 	$currencyTo.addEventListener("change", updateConversion);
 
-	$swapButton.addEventListener("click", function() {
-		const fromCurrency = $currencyFrom.value;
-		const toCurrency = $currencyTo.value;
-		const fromValue = $from.value;
-		const toValue = $to.value;
+	$swapButton.addEventListener("click", () => {
+		const fromCode = $currencyFrom.value;
+		const toCode = $currencyTo.value;
+		const received = $to.textContent;
 
-		$currencyFrom.value = toCurrency;
-		$currencyTo.value = fromCurrency;
-
-		if (fromValue && !isNaN(parseFloat(fromValue.replace(/[^0-9.]/g, "")))) {
-			$from.value = toValue;
-			$to.value = fromValue;
-		}
+		$currencyFrom.value = toCode;
+		$currencyTo.value = fromCode;
+		$from.value =
+			received && received !== "—" ? received.replace(/,/g, "") : "";
 
 		updateConversion();
 	});
 
-	let countdown = 60;
-	let countdownInterval;
-
-	function startCountdown() {
-		clearInterval(countdownInterval);
-		countdown = 60;
-		const $countdown = document.querySelector("#countdown");
-		$countdown.textContent = countdown;
-
-		countdownInterval = setInterval(() => {
-			countdown--;
-			$countdown.textContent = countdown;
-
-			if (countdown <= 0) {
-				getCurrenciesValues();
-				startCountdown();
-			}
-		}, 1000);
-	}
-
-	startCountdown();
-
-	document.querySelector("#force-refresh").addEventListener("click", () => {
+	$refreshButton.addEventListener("click", () => {
+		secondsLeft = CACHE_SECONDS;
+		renderCountdown();
 		getCurrenciesValues(true);
-		startCountdown();
 	});
 </script>

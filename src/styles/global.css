@@ -145,6 +145,11 @@
 		z-index: 1;
 	}
 
+	/* Keeps the currency combobox list above the inner frame and the stub. */
+	.note > .note-body {
+		z-index: 3;
+	}
+
 	.note-top {
 		display: flex;
 		align-items: center;

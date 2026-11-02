@@ -29,7 +29,20 @@ const year = new Date().getFullYear();
 					<div class="field-head">
 						<label for="from">Tengo</label>
 						<div class="select-wrap">
-							<select id="currency-from" aria-label="Moneda de origen"></select>
+							<input
+								id="currency-from"
+								class="combobox-input"
+								type="text"
+								role="combobox"
+								autocomplete="off"
+								spellcheck="false"
+								aria-autocomplete="list"
+								aria-expanded="false"
+								aria-haspopup="listbox"
+								aria-controls="currency-from-list"
+								aria-describedby="currency-hint"
+								aria-label="Moneda de origen"
+							/>
 							<svg viewBox="0 0 12 8" fill="none" aria-hidden="true">
 								<path
 									d="M1 1.5 6 6.5 11 1.5"
@@ -38,8 +51,18 @@ const year = new Date().getFullYear();
 									stroke-linecap="round"
 									stroke-linejoin="round"></path>
 							</svg>
+							<ul
+								id="currency-from-list"
+								class="combobox-list"
+								role="listbox"
+								aria-label="Monedas disponibles"
+								hidden>
+							</ul>
 						</div>
 					</div>
+					<p id="currency-hint" class="sr-only">
+						Escribe el país o el código de la moneda para filtrar.
+					</p>
 					<input
 						id="from"
 						type="text"
@@ -74,7 +97,20 @@ const year = new Date().getFullYear();
 					<div class="field-head">
 						<label for="to">Recibo</label>
 						<div class="select-wrap">
-							<select id="currency-to" aria-label="Moneda de destino"></select>
+							<input
+								id="currency-to"
+								class="combobox-input"
+								type="text"
+								role="combobox"
+								autocomplete="off"
+								spellcheck="false"
+								aria-autocomplete="list"
+								aria-expanded="false"
+								aria-haspopup="listbox"
+								aria-controls="currency-to-list"
+								aria-describedby="currency-hint"
+								aria-label="Moneda de destino"
+							/>
 							<svg viewBox="0 0 12 8" fill="none" aria-hidden="true">
 								<path
 									d="M1 1.5 6 6.5 11 1.5"
@@ -83,6 +119,13 @@ const year = new Date().getFullYear();
 									stroke-linecap="round"
 									stroke-linejoin="round"></path>
 							</svg>
+							<ul
+								id="currency-to-list"
+								class="combobox-list"
+								role="listbox"
+								aria-label="Monedas disponibles"
+								hidden>
+							</ul>
 						</div>
 					</div>
 					<output
@@ -152,16 +195,20 @@ const year = new Date().getFullYear();
 
 <script is:inline>
 	const currencyMetadata = {
-		USD: { flag: "🇺🇸", name: "Dólar estadounidense" },
-		EUR: { flag: "🇪🇺", name: "Euro" },
-		COP: { flag: "🇨🇴", name: "Peso colombiano" },
-		UYU: { flag: "🇺🇾", name: "Peso uruguayo" },
-		ARS: { flag: "🇦🇷", name: "Peso argentino" },
-		CLP: { flag: "🇨🇱", name: "Peso chileno" },
-		CNY: { flag: "🇨🇳", name: "Yuan chino" },
-		JPY: { flag: "🇯🇵", name: "Yen japonés" },
-		PEN: { flag: "🇵🇪", name: "Sol peruano" },
-		MXN: { flag: "🇲🇽", name: "Peso mexicano" },
+		USD: {
+			flag: "🇺🇸",
+			name: "Dólar estadounidense",
+			country: "Estados Unidos",
+		},
+		EUR: { flag: "🇪🇺", name: "Euro", country: "Unión Europea" },
+		COP: { flag: "🇨🇴", name: "Peso colombiano", country: "Colombia" },
+		UYU: { flag: "🇺🇾", name: "Peso uruguayo", country: "Uruguay" },
+		ARS: { flag: "🇦🇷", name: "Peso argentino", country: "Argentina" },
+		CLP: { flag: "🇨🇱", name: "Peso chileno", country: "Chile" },
+		CNY: { flag: "🇨🇳", name: "Yuan chino", country: "China" },
+		JPY: { flag: "🇯🇵", name: "Yen japonés", country: "Japón" },
+		PEN: { flag: "🇵🇪", name: "Sol peruano", country: "Perú" },
+		MXN: { flag: "🇲🇽", name: "Peso mexicano", country: "México" },
 	};
 
 	const currencyCodes = Object.keys(currencyMetadata);
@@ -175,6 +222,8 @@ const year = new Date().getFullYear();
 	const $to = document.querySelector("#to");
 	const $currencyFrom = document.querySelector("#currency-from");
 	const $currencyTo = document.querySelector("#currency-to");
+	const $currencyFromList = document.querySelector("#currency-from-list");
+	const $currencyToList = document.querySelector("#currency-to-list");
 	const $swapButton = document.querySelector("#swap-button");
 	const $refreshButton = document.querySelector("#force-refresh");
 	const $countdown = document.querySelector("#countdown");
@@ -237,13 +286,279 @@ const year = new Date().getFullYear();
 		return decimals ? `${formattedInteger}.${decimals}` : formattedInteger;
 	}
 
-	function buildOptions(select) {
-		currencyCodes.forEach((code) => {
-			const option = document.createElement("option");
-			option.value = code;
-			option.textContent = `${currencyMetadata[code].flag} ${code}`;
-			select.append(option);
+	function normalizeSearch(value) {
+		return String(value)
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.toLowerCase()
+			.trim();
+	}
+
+	const currencyIndex = currencyCodes.map((code) => {
+		const metadata = currencyMetadata[code];
+		return {
+			code,
+			haystack: normalizeSearch(
+				`${code} ${metadata.name} ${metadata.country}`,
+			),
+		};
+	});
+
+	const LIST_GAP = 6;
+	const LIST_MIN_WIDTH = 232;
+	const LIST_MAX_HEIGHT = 320;
+
+	function createCurrencyCombobox({ input, list, initialCode, onChange }) {
+		const wrap = input.closest(".select-wrap");
+		let selectedCode = initialCode;
+		let results = [];
+		let activeIndex = -1;
+		let isOpen = false;
+
+		function labelFor(code) {
+			return `${currencyMetadata[code].flag} ${code}`;
+		}
+
+		function showLabel() {
+			input.value = labelFor(selectedCode);
+		}
+
+		function positionList() {
+			const rect = input.getBoundingClientRect();
+			const width = Math.min(
+				Math.max(rect.width, LIST_MIN_WIDTH),
+				window.innerWidth - LIST_GAP * 2,
+			);
+			const below = window.innerHeight - rect.bottom - LIST_GAP * 2;
+			const above = rect.top - LIST_GAP * 2;
+			const openUp = below < 200 && above > below;
+
+			list.style.width = `${width}px`;
+			list.style.left = `${Math.min(
+				Math.max(rect.left, LIST_GAP),
+				window.innerWidth - width - LIST_GAP,
+			)}px`;
+			list.style.maxHeight = `${Math.min(
+				LIST_MAX_HEIGHT,
+				Math.max(160, openUp ? above : below),
+			)}px`;
+			list.style.top = openUp ? "auto" : `${rect.bottom + LIST_GAP}px`;
+			list.style.bottom = openUp
+				? `${window.innerHeight - rect.top + LIST_GAP}px`
+				: "auto";
+		}
+
+		function setActive(index) {
+			const options = list.querySelectorAll(".combobox-option");
+
+			if (!options.length) {
+				activeIndex = -1;
+				input.removeAttribute("aria-activedescendant");
+				return;
+			}
+
+			activeIndex = (index + options.length) % options.length;
+
+			options.forEach((option, optionIndex) => {
+				option.classList.toggle("is-active", optionIndex === activeIndex);
+			});
+
+			const active = options[activeIndex];
+			input.setAttribute("aria-activedescendant", active.id);
+			active.scrollIntoView({ block: "nearest" });
+		}
+
+		function render(query) {
+			const term = normalizeSearch(query);
+			results = term
+				? currencyIndex.filter((entry) => entry.haystack.includes(term))
+				: currencyIndex.slice();
+
+			list.textContent = "";
+
+			if (!results.length) {
+				const empty = document.createElement("li");
+				empty.className = "combobox-empty";
+				empty.textContent = "Sin resultados";
+				list.append(empty);
+				setActive(-1);
+				return;
+			}
+
+			results.forEach((entry, index) => {
+				const metadata = currencyMetadata[entry.code];
+
+				const option = document.createElement("li");
+				option.id = `${input.id}-option-${index}`;
+				option.className = "combobox-option";
+				option.dataset.code = entry.code;
+				option.setAttribute("role", "option");
+				option.setAttribute(
+					"aria-selected",
+					String(entry.code === selectedCode),
+				);
+
+				const flag = document.createElement("span");
+				flag.className = "combobox-option-flag";
+				flag.setAttribute("aria-hidden", "true");
+				flag.textContent = metadata.flag;
+
+				const code = document.createElement("span");
+				code.className = "combobox-option-code";
+				code.textContent = entry.code;
+
+				const name = document.createElement("span");
+				name.className = "combobox-option-name";
+				name.textContent = metadata.name;
+
+				option.append(flag, code, name);
+				list.append(option);
+			});
+
+			const selectedIndex = results.findIndex(
+				(entry) => entry.code === selectedCode,
+			);
+			setActive(selectedIndex === -1 ? 0 : selectedIndex);
+		}
+
+		function open(query) {
+			if (!isOpen) {
+				isOpen = true;
+				input.setAttribute("aria-expanded", "true");
+				wrap.dataset.open = "true";
+				list.hidden = false;
+			}
+
+			render(query);
+			positionList();
+		}
+
+		function close() {
+			if (!isOpen) return;
+
+			isOpen = false;
+			input.setAttribute("aria-expanded", "false");
+			input.removeAttribute("aria-activedescendant");
+			wrap.dataset.open = "false";
+			list.hidden = true;
+		}
+
+		function commit(code) {
+			if (!currencyMetadata[code]) return;
+
+			selectedCode = code;
+			showLabel();
+			close();
+			if (onChange) onChange(code);
+		}
+
+		input.addEventListener("focus", () => {
+			input.select();
+			open("");
 		});
+
+		input.addEventListener("input", () => {
+			open(input.value);
+		});
+
+		input.addEventListener("click", () => {
+			// Clicks should always select the whole label, so typing replaces it.
+			if (input.value === labelFor(selectedCode)) input.select();
+		});
+
+		input.addEventListener("keydown", (event) => {
+			const isArrow = event.key === "ArrowDown" || event.key === "ArrowUp";
+
+			if (isArrow) {
+				event.preventDefault();
+
+				if (!isOpen) {
+					open("");
+					return;
+				}
+
+				setActive(activeIndex + (event.key === "ArrowDown" ? 1 : -1));
+				return;
+			}
+
+			if (!isOpen) return;
+
+			if (event.key === "Enter") {
+				event.preventDefault();
+
+				if (activeIndex >= 0 && results[activeIndex]) {
+					commit(results[activeIndex].code);
+				} else {
+					showLabel();
+					close();
+				}
+				return;
+			}
+
+			if (event.key === "Escape") {
+				event.preventDefault();
+				showLabel();
+				close();
+				return;
+			}
+
+			if (event.key === "Tab") {
+				showLabel();
+				close();
+			}
+		});
+
+		input.addEventListener("blur", () => {
+			showLabel();
+			close();
+		});
+
+		list.addEventListener("mousedown", (event) => {
+			// Keep the focus on the input so blur does not close the list first.
+			event.preventDefault();
+		});
+
+		list.addEventListener("pointermove", (event) => {
+			const option = event.target.closest(".combobox-option");
+			if (!option) return;
+
+			const index = results.findIndex(
+				(entry) => entry.code === option.dataset.code,
+			);
+			if (index !== -1 && index !== activeIndex) setActive(index);
+		});
+
+		list.addEventListener("click", (event) => {
+			const option = event.target.closest(".combobox-option");
+			if (option) commit(option.dataset.code);
+		});
+
+		window.addEventListener("resize", () => {
+			if (isOpen) positionList();
+		});
+
+		window.addEventListener(
+			"scroll",
+			() => {
+				if (isOpen) positionList();
+			},
+			true,
+		);
+
+		showLabel();
+
+		return {
+			get value() {
+				return selectedCode;
+			},
+			setCode(code) {
+				if (!currencyMetadata[code]) return;
+
+				selectedCode = code;
+				showLabel();
+				if (isOpen) render("");
+			},
+		};
 	}
 
 	function buildQuotes() {
@@ -295,8 +610,8 @@ const year = new Date().getFullYear();
 	}
 
 	function updateConversion() {
-		const from = $currencyFrom.value;
-		const to = $currencyTo.value;
+		const from = searchableFrom.value;
+		const to = searchableTo.value;
 		const fromRate = currencies[from];
 		const toRate = currencies[to];
 
@@ -420,10 +735,20 @@ const year = new Date().getFullYear();
 		}
 	}
 
-	buildOptions($currencyFrom);
-	buildOptions($currencyTo);
-	$currencyFrom.value = "USD";
-	$currencyTo.value = "COP";
+	const searchableFrom = createCurrencyCombobox({
+		input: $currencyFrom,
+		list: $currencyFromList,
+		initialCode: "USD",
+		onChange: updateConversion,
+	});
+
+	const searchableTo = createCurrencyCombobox({
+		input: $currencyTo,
+		list: $currencyToList,
+		initialCode: "COP",
+		onChange: updateConversion,
+	});
+
 	buildQuotes();
 
 	updateConversion();
@@ -442,16 +767,13 @@ const year = new Date().getFullYear();
 		$from.value = $from.value.replace(/,/g, "");
 	});
 
-	$currencyFrom.addEventListener("change", updateConversion);
-	$currencyTo.addEventListener("change", updateConversion);
-
 	$swapButton.addEventListener("click", () => {
-		const fromCode = $currencyFrom.value;
-		const toCode = $currencyTo.value;
+		const fromCode = searchableFrom.value;
+		const toCode = searchableTo.value;
 		const received = $to.textContent;
 
-		$currencyFrom.value = toCode;
-		$currencyTo.value = fromCode;
+		searchableFrom.setCode(toCode);
+		searchableTo.setCode(fromCode);
 		$from.value =
 			received && received !== "—" ? received.replace(/,/g, "") : "";
 

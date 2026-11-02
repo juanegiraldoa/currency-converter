@@ -16,7 +16,7 @@ There are no test, lint, format, or typecheck scripts, and `@astrojs/check` is n
 
 ## Architecture
 
-- `src/pages/index.astro` renders `Layout.astro` + `Table.astro`. All client logic lives in the `is:inline` script in `Table.astro`, so Vite/Astro do not process it as a module. Conversion UI, selects, and the quote board all derive from `currencyMetadata` in that script.
+- `src/pages/index.astro` renders `Layout.astro` + `Table.astro`. All client logic lives in the `is:inline` script in `Table.astro`, so Vite/Astro do not process it as a module. Conversion UI, currency comboboxes, and the quote board all derive from `currencyMetadata` in that script.
 - `src/pages/api/currency/[id].ts` — `GET /api/currency/{CODE}?amount=1&force=true`. Calls `https://duckduckgo.com/js/spice/currency_convert/{amount}/USD/{CODE}`, reads `to[0].mid`, and caches the result in the `CURRENCIES` KV namespace with a 60s TTL. `force=true` skips the cache.
 - KV bindings are imported directly with `import { env } from "cloudflare:workers"`. `wrangler.jsonc` holds the bindings; local state lives in `.wrangler/`, production uses the committed KV namespace ID.
 - `output: "server"` and `session: false` in `astro.config.mjs`. `wrangler.jsonc` `main` points at `@astrojs/cloudflare/entrypoints/server`, not a built file. The adapter uses `imageService: "passthrough"` because the app uses no Astro image optimization.
@@ -24,7 +24,7 @@ There are no test, lint, format, or typecheck scripts, and `@astrojs/check` is n
 
 ## Gotchas
 
-- Adding a currency only requires an entry in `currencyMetadata` in `Table.astro`; the selects, board, and conversion derive from it. The API accepts any code.
+- Adding a currency only requires an entry in `currencyMetadata` in `Table.astro` with `flag`, `name`, and `country` (the combobox filters by code, country, and currency name); the board and conversion derive from it. The API accepts any code.
 - Client fetch URLs are relative (`api/currency/...`, no leading slash), so they only resolve from `/`. Use `/api/...` if you add nested pages.
 - `pnpm-workspace.yaml` only allows the `esbuild` and `workerd` install scripts. Keep it, or clean installs will skip required postinstall builds.
 - Tailwind is v4 via `@tailwindcss/vite` plus `@import "tailwindcss"` in `src/styles/global.css`; there is no `tailwind.config.js` and none is needed.

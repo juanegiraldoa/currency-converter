@@ -24,7 +24,7 @@ There are no test, lint, format, or typecheck scripts, and `@astrojs/check` is n
 
 ## Gotchas
 
-- Adding a currency only requires an entry in `currencyMetadata` in `Table.astro` with `flag`, `name`, and `country` (the combobox filters by code, country, and currency name); the board and conversion derive from it. The API accepts any code.
+- Adding a currency only requires an entry in `currencyMetadata` in `Table.astro` with `flag`, `name`, `country`, and `continent` (`america`, `europa`, or `asia` — the quote board groups by it); the combobox filters by code, country, and currency name, and the conversion derives from the same object. The API accepts any code.
 - Client fetch URLs are relative (`api/currency/...`, no leading slash), so they only resolve from `/`. Use `/api/...` if you add nested pages.
 - `pnpm-workspace.yaml` only allows the `esbuild` and `workerd` install scripts. Keep it, or clean installs will skip required postinstall builds.
 - Tailwind is v4 via `@tailwindcss/vite` plus `@import "tailwindcss"` in `src/styles/global.css`; there is no `tailwind.config.js` and none is needed.

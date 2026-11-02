@@ -17,8 +17,8 @@ const year = new Date().getFullYear();
 				<div class="seal-mark" aria-hidden="true">MC</div>
 				<h1 id="page-title">Mesa de cambio</h1>
 				<p>
-					Convierte entre monedas de América y Asia con la tasa vigente. Se
-					actualizan cada minuto.
+					Convierte entre monedas de América, Europa y Asia con la tasa
+					vigente. Se actualizan cada minuto.
 				</p>
 			</header>
 
@@ -182,7 +182,7 @@ const year = new Date().getFullYear();
 			</div>
 			<p class="quotes-base">Base: 1 USD</p>
 		</div>
-		<ul id="quotes" class="quotes"></ul>
+		<div id="quotes" class="quotes-groups"></div>
 	</section>
 
 	<footer class="page-footer">
@@ -194,21 +194,73 @@ const year = new Date().getFullYear();
 </main>
 
 <script is:inline>
+	const continents = [
+		{ id: "america", label: "América" },
+		{ id: "europa", label: "Europa" },
+		{ id: "asia", label: "Asia" },
+	];
+
 	const currencyMetadata = {
 		USD: {
 			flag: "🇺🇸",
 			name: "Dólar estadounidense",
 			country: "Estados Unidos",
+			continent: "america",
 		},
-		EUR: { flag: "🇪🇺", name: "Euro", country: "Unión Europea" },
-		COP: { flag: "🇨🇴", name: "Peso colombiano", country: "Colombia" },
-		UYU: { flag: "🇺🇾", name: "Peso uruguayo", country: "Uruguay" },
-		ARS: { flag: "🇦🇷", name: "Peso argentino", country: "Argentina" },
-		CLP: { flag: "🇨🇱", name: "Peso chileno", country: "Chile" },
-		CNY: { flag: "🇨🇳", name: "Yuan chino", country: "China" },
-		JPY: { flag: "🇯🇵", name: "Yen japonés", country: "Japón" },
-		PEN: { flag: "🇵🇪", name: "Sol peruano", country: "Perú" },
-		MXN: { flag: "🇲🇽", name: "Peso mexicano", country: "México" },
+		EUR: {
+			flag: "🇪🇺",
+			name: "Euro",
+			country: "Unión Europea",
+			continent: "europa",
+		},
+		COP: {
+			flag: "🇨🇴",
+			name: "Peso colombiano",
+			country: "Colombia",
+			continent: "america",
+		},
+		UYU: {
+			flag: "🇺🇾",
+			name: "Peso uruguayo",
+			country: "Uruguay",
+			continent: "america",
+		},
+		ARS: {
+			flag: "🇦🇷",
+			name: "Peso argentino",
+			country: "Argentina",
+			continent: "america",
+		},
+		CLP: {
+			flag: "🇨🇱",
+			name: "Peso chileno",
+			country: "Chile",
+			continent: "america",
+		},
+		CNY: {
+			flag: "🇨🇳",
+			name: "Yuan chino",
+			country: "China",
+			continent: "asia",
+		},
+		JPY: {
+			flag: "🇯🇵",
+			name: "Yen japonés",
+			country: "Japón",
+			continent: "asia",
+		},
+		PEN: {
+			flag: "🇵🇪",
+			name: "Sol peruano",
+			country: "Perú",
+			continent: "america",
+		},
+		MXN: {
+			flag: "🇲🇽",
+			name: "Peso mexicano",
+			country: "México",
+			continent: "america",
+		},
 	};
 
 	const currencyCodes = Object.keys(currencyMetadata);
@@ -561,37 +613,74 @@ const year = new Date().getFullYear();
 		};
 	}
 
+	function createQuoteItem(code) {
+		const metadata = currencyMetadata[code];
+		const item = document.createElement("li");
+
+		const top = document.createElement("div");
+		top.className = "quote-top";
+
+		const flag = document.createElement("span");
+		flag.className = "quote-flag";
+		flag.textContent = metadata.flag;
+		flag.setAttribute("aria-hidden", "true");
+
+		const codeLabel = document.createElement("span");
+		codeLabel.className = "quote-code";
+		codeLabel.textContent = code;
+
+		top.append(flag, codeLabel);
+
+		const value = document.createElement("p");
+		value.className = "quote-value";
+		value.textContent = "—";
+
+		const name = document.createElement("p");
+		name.className = "quote-name";
+		name.textContent = metadata.name;
+		name.title = metadata.name;
+
+		item.append(top, value, name);
+		quoteValues.set(code, value);
+
+		return item;
+	}
+
 	function buildQuotes() {
-		currencyCodes.forEach((code) => {
-			const metadata = currencyMetadata[code];
-			const item = document.createElement("li");
+		continents.forEach((continent) => {
+			const codes = currencyCodes.filter(
+				(code) => currencyMetadata[code].continent === continent.id,
+			);
 
-			const top = document.createElement("div");
-			top.className = "quote-top";
+			if (!codes.length) return;
 
-			const flag = document.createElement("span");
-			flag.className = "quote-flag";
-			flag.textContent = metadata.flag;
-			flag.setAttribute("aria-hidden", "true");
+			const group = document.createElement("section");
+			group.className = "quote-group";
+			group.setAttribute("aria-labelledby", `quotes-${continent.id}`);
 
-			const codeLabel = document.createElement("span");
-			codeLabel.className = "quote-code";
-			codeLabel.textContent = code;
+			const title = document.createElement("h3");
+			title.id = `quotes-${continent.id}`;
+			title.className = "quote-group-title";
 
-			top.append(flag, codeLabel);
+			const titleText = document.createElement("span");
+			titleText.textContent = continent.label;
 
-			const value = document.createElement("p");
-			value.className = "quote-value";
-			value.textContent = "—";
+			const rule = document.createElement("span");
+			rule.className = "quote-group-rule";
+			rule.setAttribute("aria-hidden", "true");
 
-			const name = document.createElement("p");
-			name.className = "quote-name";
-			name.textContent = metadata.name;
-			name.title = metadata.name;
+			const count = document.createElement("span");
+			count.className = "quote-group-count";
+			count.textContent = String(codes.length);
 
-			item.append(top, value, name);
-			$quotes.append(item);
-			quoteValues.set(code, value);
+			title.append(titleText, rule, count);
+
+			const list = document.createElement("ul");
+			list.className = "quotes";
+			codes.forEach((code) => list.append(createQuoteItem(code)));
+
+			group.append(title, list);
+			$quotes.append(group);
 		});
 	}
 
